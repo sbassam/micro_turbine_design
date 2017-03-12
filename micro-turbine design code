@@ -1,0 +1,220 @@
+%--micro-turbine design code--%
+
+%-----------------Compressor Design-------------%
+%Basic Data%
+p_0a= 101;
+T_0a=288;
+gamma=1.4;
+R=286.86;
+%input%
+CPR=input('CPR');
+mdot_a=input('mass flow rate');
+RPM=input('RPM');
+etta_poly=input('polytropic efficiency');
+%mean line design procedure%
+%Design Choice: Inlet Mach number%
+M_z1=0.1;
+T_1=T_0a/(1+((gamma-1)*(M_z1^2)/2));
+av_1=((gamma-1)*1004*T_1)^0.5;
+c_z1=M_z1*av_1;
+p_1=p_0a/(1+(((gamma-1)*M_z1^2)/2))^(gamma/(gamma-1));
+dnst_1=p_1*1000/(R*T_1);
+A_1=mdot_a/(dnst_1*c_z1);
+%Design choice: Hub-to-tip ratio%
+hub_tip_ratio=0.5;
+r_t1=((A_1)/(3.14*(1-(hub_tip_ratio)^2)))^0.5;
+r_h1=r_t1*hub_tip_ratio;
+p_texit=CPR*p_0a;
+T_texit=T_0a*(CPR)^((gamma-1)/(etta_poly*gamma));
+%assumption: constant axial velocity%
+c_exit=c_z1;
+T_exit=T_texit-(c_exit^2/(2*1004));
+av_exit=((gamma-1)*1004*T_exit)^0.5;
+M_exit=c_exit/av_exit;
+p_exit=p_texit/(1+(((gamma-1)*(M_exit)^2)/2))^(gamma/(gamma-1));
+dnst_exit=p_exit*1000/(R*T_exit);
+A_exit=mdot_a/(dnst_exit*c_exit);
+%assumption: tip constant%
+r_texit=r_t1;
+r_hexit=((r_texit^2)-(A_exit/3.14))^0.5;
+%blade angles%
+r_m1=(r_h1+r_t1)/2;
+u_tip=RPM*0.1047197*r_t1;
+u_m=u_tip*(r_m1/r_t1);
+alpha_1=0;
+beta_1=atand(u_m/c_z1)
+w_1rm=c_z1/cosd(beta_1);
+M_1rm=w_1rm/av_1;
+%Design choice: Degree of Reaction%
+D_R=0.85;
+c_theta2m=(1-D_R)*2*u_m
+Dehaller=(((u_m-c_theta2m)^2+(c_z1)^2)^0.5)/w_1rm
+beta_2=atand((u_m-c_theta2m)/c_z1)
+%Design choice: solidity%
+solidity=1;
+D_fac=1-((((u_m-c_theta2m)^2+(c_z1)^2)^0.5)/w_1rm)+(c_theta2m/(2*solidity*w_1rm))
+loadingp_m=(c_theta2m)/u_m
+alpha_2m=atand(c_theta2m/c_z1)
+D_R=1-(c_theta2m/(2*u_m))
+flow_coeff=c_z1/u_m
+%number of stages%
+T_t2m=T_0a+(u_m*(c_theta2m/1004));
+total_temp_rise_1stg=T_t2m-T_0a
+total_temp_rise_comp=T_texit-T_0a
+stnumber=total_temp_rise_comp/total_temp_rise_1stg
+pwr_c=mdot_a*(1.004)*(T_texit-T_0a)
+ 
+%-------------Single Stage Turbine--------------%
+mdot_a=0.19;
+RPM=132000;
+T_01=1017;
+p_01=333.3;
+r_m1=0.0331;
+mdot_c=0.19;
+e=0;
+T_0c=771;
+p_0c=2020;
+M_0=0;
+p_0=101;
+T_0=298;
+c_pc=1004.5;
+gamma_c=1.4;
+gamma_t=1.3;
+c_pt=1243.67;
+etta_mech=0.995;
+pwr_c=0.024;
+pwr_t=pwr_c/etta_mech;
+mdot_st1=mdot_a;
+T_05=((-pwr_t/mdot_a)+(c_pt*T_01*(1-e))+(e*c_pc*T_0c))/(c_pt-(c_pt*e)+(c_pc*e));
+%First Nozzle Pitchline Design%
+%Design Choice: nozzle exit mach number%
+M_2=1.1;
+T_2=T_01/(1+(0.15*(M_2^2)));
+a_2=(gamma_t*287*T_2)^0.5;
+c_2=M_2*a_2;
+%Design Choice: exit flow angle%
+alpha_2=52;
+c_z=c_2*cosd(alpha_2);
+c_theta2=c_2*sind(alpha_2);
+c_1=c_z;
+T_1=T_01-((c_1^2)/(2*c_pt));
+a_1=(gamma_t*287*T_1)^0.5;
+M_1=c_1/a_1;
+e_N1=0.0252;
+%First Turbine Rotor Pitchline Design%
+M_3r=0.82;
+u_m=RPM*r_m1*(2*3.14/60);
+w_theta2=u_m-c_theta2;
+w_theta3=-((((M_3r^2)*((a_2^2)+((gamma_t-1)*(w_theta2^2)/2)))-(c_z^2))/(1+((gamma_t-1)*(M_3r^2)/2)))^0.5;
+c_theta3=w_theta3+u_m;
+DR=1-((c_theta2+c_theta3)/(2*u_m))
+w_theta2=c_theta2-u_m;
+beta_2=atand(w_theta2/c_z);
+beta_3=atand(w_theta3/c_z);
+alpha_3=atand(c_theta3/c_z);
+w_2=((c_z^2)+(w_theta2^2))^0.5;
+T_2=T_01-((c_2^2)/(2*c_pt));
+T_02r=T_2+((w_2^2)/(2*c_pt));
+e_R1=0.035;
+%First Stage Loading Parameter and Shaft Power%
+w_st1=u_m*(c_theta2-c_theta3)
+loading_st1=w_st1/(u_m^2)
+pwr_st1=mdot_st1*w_st1
+
+%-----------------Double Stage Trubine--------------------%
+mdot_a=input('turbine inlet mass flow rate');
+RPM=input('RPM');
+T_01=input('TIT');
+p_01=input('turbine inlet total pressure');
+r_m1=input('turbine meanline radius');
+mdot_c=input('Coolant mass flow rate');
+e=input('mass coolant fraction');
+T_0c=771;
+p_0c=2020;
+M_0=0;
+p_0=101;
+T_0=298;
+c_pc=1004.5;
+gamma_c=1.4;
+gamma_t=1.3;
+c_pt=1243.67;
+etta_mech=0.995;
+pwr_c=input('Compressor required power');
+pwr_t=pwr_c/etta_mech;
+mdot_st1=mdot_a;
+T_05=((-pwr_t/mdot_a)+(c_pt*T_01*(1-e))+(e*c_pc*T_0c))/(c_pt-(c_pt*e)+(c_pc*e));
+ 
+%First Nozzle Pitchline Design%
+M_2=1.1;
+T_2=T_01/(1+(0.15*(M_2^2)));
+a_2=(gamma_t*287*T_2)^0.5;
+c_2=M_2*a_2;
+alpha_2=65;
+c_z=c_2*cosd(alpha_2);
+c_theta2=c_2*sind(alpha_2);
+c_1=c_z;
+T_1=T_01-((c_1^2)/(2*c_pt));
+a_1=(gamma_t*287*T_1)^0.5;
+M_1=c_1/a_1;
+e_N1=0.0252;
+%First Turbine Rotor Pitchline Design%
+M_3r=0.85;
+u_m=RPM*r_m1*(2*3.14/60);
+w_theta2=u_m-c_theta2;
+w_theta3=-((((M_3r^2)*((a_2^2)+((gamma_t-1)*(w_theta2^2)/2)))-(c_z^2))/(1+((gamma_t-1)*(M_3r^2)/2)))^0.5;
+c_theta3=w_theta3+u_m;
+DR=1-((c_theta2+c_theta3)/(2*u_m))
+w_theta2=c_theta2-u_m;
+beta_2=atand(w_theta2/c_z);
+beta_3=atand(w_theta3/c_z);
+alpha_3=atand(c_theta3/c_z);
+w_2=((c_z^2)+(w_theta2^2))^0.5;
+T_2=T_01-((c_2^2)/(2*c_pt));
+T_02r=T_2+((w_2^2)/(2*c_pt));
+e_R1=0.035;
+%First Stage Loading Parameter and Shaft Power%
+w_st1=u_m*(c_theta2-c_theta3)
+loading_st1=w_st1/(u_m^2)
+pwr_st1=mdot_st1*w_st1
+%Second Nozzle pitchline Design%
+    %input%
+             c_3=((c_theta3^2)+(c_z^2))^0.5;
+            T_03=T_01+(((c_3^2)-(c_2^2))/(2*c_pt));
+            T_3=T_03-((c_3^2)/(2*c_pt));
+          
+    %Design Choices%
+            alpha_4=68;
+            r_m3=0.1;
+M_4=0.887   ;
+T_4=T_03/(1+(0.15*(M_4^2)));
+a_4=(gamma_t*287*T_4)^0.5;
+c_4=M_4*a_4;
+c_zst2=c_4*cosd(alpha_4);
+c_theta4=c_4*sind(alpha_4);
+T_3=T_03-((c_3^2)/(2*c_pt));
+a_3=(gamma_t*287*T_3)^0.5;
+M_3=c_1/a_3;
+e_N3=0.022;
+%Second Rotor Pitchline Design%
+    %Design Choice%
+        M_5r=0.85;
+ 
+u_mst2=RPM*r_m3*(2*3.14/60);
+w_theta4=c_theta4-u_mst2;
+w_theta5=-((((M_5r^2)*((a_4^2)+((gamma_t-1)*(w_theta4^2)/2)))-(c_zst2^2))/(1+((gamma_t-1)*(M_5r^2)/2)))^0.5;
+c_theta5=w_theta5+u_mst2;
+DR_st2=1-((c_theta4+c_theta5)/(2*u_mst2))
+beta_4=atand(w_theta4/c_zst2);
+beta_5=atand(w_theta5/c_zst2);
+alpha_5=atand(c_theta5/c_zst2);
+w_4=((c_zst2^2)+(w_theta4^2))^0.5;
+T_4=T_03-((c_4^2)/(2*c_pt));
+T_04r=T_4+((w_4^2)/(2*c_pt));
+e_R3=0.035;
+%Second Stage Loading Parameter and Shaft Power%
+w_st2=u_mst2*(c_theta4-c_theta5)
+loading_st2=w_st2/(u_mst2^2)
+mdot_st2=mdot_st1;
+pwr_st2=mdot_st2*w_st2
+
+%---------------------------------%
